@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PinjamKampus</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef3f8;color:#1b2a3a}
+[hidden]{display:none!important}
+header{background:#1f6f8b;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:22px}
+main{max-width:560px;margin:32px auto;padding:0 16px}
+.view{background:#fff;border-radius:10px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+h2{margin-top:0;color:#1f6f8b}
+label{display:block;margin:14px 0 4px;font-weight:bold;font-size:14px}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:9px;border:1px solid #9bb0c1;border-radius:6px;font-size:15px;font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+.cek{display:flex;gap:8px;align-items:center;margin-top:14px;font-size:14px}
+.btn{display:inline-block;margin-top:18px;padding:10px 20px;background:#1f6f8b;color:#fff;border:0;border-radius:6px;font-size:15px;cursor:pointer;text-decoration:none}
+.btn:hover{background:#17566c}
+header .btn{margin:0;padding:6px 14px;background:#fff;color:#1f6f8b}
+.alert{margin-top:14px;padding:10px;background:#fdecea;color:#a12622;border:1px solid #f1b5b0;border-radius:6px;font-size:14px}
+.demo{background:#e3f2f9;padding:12px;border-radius:6px;font-size:14px;margin-bottom:6px}
+dl{display:grid;grid-template-columns:140px 1fr;gap:8px;margin:16px 0}
+dt{font-weight:bold}
+dd{margin:0}
+footer{text-align:center;font-size:12px;color:#5b6b7b;padding:20px}
+</style>
+</head>
+<body>
+<header>
+<h1>PinjamKampus</h1>
+<button id="btn-logout" class="btn" hidden>Keluar</button>
+</header>
+<main>
+<section id="beranda" class="view">
+<h2 id="judul-beranda">Pinjam Barang Kampus dengan Mudah</h2>
+<p>PinjamKampus membantu mahasiswa mengajukan peminjaman proyektor, kamera, laptop, dan perlengkapan kampus lainnya secara online.</p>
+<a id="btn-mulai" class="btn" href="#login">Mulai Pinjam</a>
+</section>
+
+<section id="login" class="view" hidden>
+<h2 id="judul-login">Login</h2>
+<p>Silakan login untuk mengajukan peminjaman.</p>
+<div class="demo"><b>Akun demo</b><br>Username: mahasiswa<br>Password: bakrie123</div>
+<form id="form-login" novalidate>
+<label for="username">Username</label>
+<input type="text" id="username" name="username" placeholder="Username" autocomplete="off">
+<label for="password">Password</label>
+<input type="password" id="password" name="password" placeholder="Password" autocomplete="off">
+<div id="pesan-login" class="alert" role="alert" hidden></div>
+<button type="submit" id="btn-login" class="btn">Login</button>
+</form>
+</section>
+
+<section id="pinjam" class="view" hidden>
+<h2 id="judul-pinjam">Form Peminjaman Barang</h2>
+<form id="form-pinjam" novalidate>
+<label for="nama">Nama Peminjam</label>
+<input type="text" id="nama" name="nama" placeholder="Nama lengkap">
+<label for="barang">Barang</label>
+<select id="barang" name="barang">
+<option value="">Pilih barang</option>
+<option value="Proyektor">Proyektor</option>
+<option value="Kamera DSLR">Kamera DSLR</option>
+<option value="Laptop">Laptop</option>
+<option value="Tripod">Tripod</option>
+<option value="Speaker">Speaker</option>
+</select>
+<label for="tanggal">Tanggal Pinjam (dd/mm/yyyy)</label>
+<input type="text" id="tanggal" name="tanggal" placeholder="dd/mm/yyyy">
+<label for="durasi">Durasi (hari, maksimal 7)</label>
+<input type="number" id="durasi" name="durasi" placeholder="1 sampai 7">
+<label for="keperluan">Keperluan</label>
+<textarea id="keperluan" name="keperluan" placeholder="Keperluan peminjaman"></textarea>
+<div class="cek"><input type="checkbox" id="setuju" name="setuju"><label for="setuju" style="margin:0;font-weight:normal">Saya bersedia menjaga dan mengembalikan barang tepat waktu</label></div>
+<div id="pesan-form" class="alert" role="alert" hidden></div>
+<button type="submit" id="btn-pinjam" class="btn">Ajukan Peminjaman</button>
+</form>
+</section>
+
+<section id="konfirmasi" class="view" hidden>
+<h2 id="judul-konfirmasi">Peminjaman Berhasil Diajukan</h2>
+<p>Pengajuan peminjaman Anda telah tercatat dengan rincian berikut.</p>
+<dl>
+<dt>Nama</dt><dd id="k-nama"></dd>
+<dt>Barang</dt><dd id="k-barang"></dd>
+<dt>Tanggal Pinjam</dt><dd id="k-tanggal"></dd>
+<dt>Durasi</dt><dd id="k-durasi"></dd>
+<dt>Status</dt><dd id="k-status">Menunggu Persetujuan</dd>
+</dl>
+<a id="btn-baru" class="btn" href="#pinjam">Pinjam Lagi</a>
+</section>
+</main>
+<footer>Website latihan Automation Testing, Heiby Ali Bajri (1242002064)</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const views=['beranda','login','pinjam','konfirmasi'];
+let masuk=false,data=null;
+
+function tampil(){
+  let v=location.hash.slice(1);
+  if(!views.includes(v))v='beranda';
+  if((v==='pinjam'||v==='konfirmasi')&&!masuk){location.hash='login';return;}
+  if(v==='konfirmasi'&&!data){location.hash='pinjam';return;}
+  views.forEach(n=>{$(n).hidden=n!==v;});
+  $('btn-logout').hidden=!masuk;
+}
+function pesan(id,t){$(id).textContent=t;$(id).hidden=false;}
+
+window.addEventListener('hashchange',tampil);
+tampil();
+
+$('form-login').addEventListener('submit',e=>{
+  e.preventDefault();
+  const u=$('username').value.trim(),p=$('password').value;
+  if(u===''||p===''){pesan('pesan-login','Username dan password wajib diisi.');return;}
+  if(u==='mahasiswa'&&p==='bakrie123'){
+    masuk=true;
+    $('pesan-login').hidden=true;
+    $('form-login').reset();
+    location.hash='pinjam';
+    tampil();
+  }else{
+    pesan('pesan-login','Login gagal! Pastikan username dan password valid.');
+  }
+});
+
+$('form-pinjam').addEventListener('submit',e=>{
+  e.preventDefault();
+  const d={
+    nama:$('nama').value.trim(),
+    barang:$('barang').value,
+    tanggal:$('tanggal').value.trim(),
+    durasi:Number($('durasi').value),
+    setuju:$('setuju').checked
+  };
+  let s='';
+  if(!d.nama)s='Nama peminjam wajib diisi.';
+  else if(!d.barang)s='Barang yang dipinjam wajib dipilih.';
+  else if(!/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(d.tanggal))s='Format tanggal harus dd/mm/yyyy.';
+  else if(!Number.isInteger(d.durasi)||d.durasi<1||d.durasi>7)s='Durasi peminjaman harus antara 1 sampai 7 hari.';
+  else if(!d.setuju)s='Anda harus menyetujui ketentuan peminjaman.';
+  if(s){pesan('pesan-form',s);return;}
+  data=d;
+  $('k-nama').textContent=d.nama;
+  $('k-barang').textContent=d.barang;
+  $('k-tanggal').textContent=d.tanggal;
+  $('k-durasi').textContent=d.durasi+' hari';
+  $('pesan-form').hidden=true;
+  $('form-pinjam').reset();
+  location.hash='konfirmasi';
+  tampil();
+});
+
+$('btn-logout').addEventListener('click',()=>{
+  masuk=false;data=null;
+  location.hash='login';
+  tampil();
+});
+</script>
+</body>
+</html>
